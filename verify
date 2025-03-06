@@ -1,0 +1,185 @@
+import re
+import sys
+import subprocess
+import platform
+
+try:
+    from selenium import webdriver
+    from selenium.webdriver.common.by import By
+    from selenium.webdriver.support.ui import WebDriverWait
+    from selenium.webdriver.support import expected_conditions as EC
+    from selenium.webdriver.chrome.service import Service
+    from webdriver_manager.chrome import ChromeDriverManager
+    from selenium.webdriver.chrome.options import Options
+    from selenium.common.exceptions import WebDriverException, TimeoutException
+except ImportError:
+    print("Required libraries not found. Installing...")
+    subprocess.check_call([sys.executable, '-m', 'pip', 'install', 'selenium', 'webdriver-manager'])
+    from selenium import webdriver
+    from selenium.webdriver.common.by import By
+    from selenium.webdriver.support.ui import WebDriverWait
+    from selenium.webdriver.support import expected_conditions as EC
+    from selenium.webdriver.chrome.service import Service
+    from webdriver_manager.chrome import ChromeDriverManager
+    from selenium.webdriver.chrome.options import Options
+    from selenium.common.exceptions import WebDriverException, TimeoutException
+
+def check_chrome_installation():
+    """
+    Check if Google Chrome is installed on the system
+    """
+    system = platform.system().lower()
+    
+    try:
+        if system == "windows":
+            # Windows: Check Chrome installation
+            import winreg
+            try:
+                key = winreg.OpenKey(
+                    winreg.HKEY_LOCAL_MACHINE, 
+                    r"SOFTWARE\Microsoft\Windows\CurrentVersion\App Paths\chrome.exe"
+                )
+                return True
+            except FileNotFoundError:
+                return False
+        
+        elif system == "darwin":  # macOS
+            return subprocess.call(["which", "google-chrome"]) == 0
+        
+        elif system == "linux":
+            return subprocess.call(["which", "google-chrome"]) == 0
+        
+        return False
+    
+    except Exception:
+        return False
+
+def install_chrome():
+    """
+    Provide installation instructions if Chrome is not found
+    """
+    system = platform.system().lower()
+    
+    print("\n🚨 Google Chrome is not installed or not found in system PATH. 🚨")
+    print("\nPlease install Google Chrome:")
+    
+    if system == "windows":
+        print("1. Download from: https://www.google.com/chrome/")
+        print("2. Run the installer")
+        print("3. Choose 'Install' and follow the prompts")
+    elif system == "darwin":  # macOS
+        print("1. Download from: https://www.google.com/chrome/")
+        print("2. Open the .dmg file")
+        print("3. Drag Google Chrome to Applications folder")
+    elif system == "linux":
+        print("Use your distribution's package manager:")
+        print("- Ubuntu/Debian: sudo apt-get install google-chrome-stable")
+        print("- Fedora: sudo dnf install google-chrome-stable")
+        print("- Arch: sudo pacman -S google-chrome")
+    
+    sys.exit(1)
+
+def validate_aadhaar_format(aadhaar_number):
+    """
+    Validate Aadhaar number format
+    - Must be 12 digits
+    - Only numeric characters allowed
+    """
+    # Remove any spaces or hyphens
+    cleaned_number = re.sub(r'[\s-]', '', str(aadhaar_number))
+    
+    # Check if it's exactly 12 digits
+    if not cleaned_number.isdigit() or len(cleaned_number) != 12:
+        return False
+    
+    return True
+
+def verify_aadhaar(aadhaar_number):
+    """
+    Verify Aadhaar number using Selenium
+    """
+    # First, check the format
+    if not validate_aadhaar_format(aadhaar_number):
+        return "Invalid Aadhaar Format"
+    
+    # Setup Chrome options
+    chrome_options = Options()
+    chrome_options.add_argument("--headless")  # Run in background
+    chrome_options.add_argument("--disable-gpu")
+    chrome_options.add_argument("--no-sandbox")
+    chrome_options.add_argument("--remote-debugging-port=9222")
+    
+    driver = None
+    try:
+        # Setup the webdriver
+        service = Service(ChromeDriverManager().install())
+        driver = webdriver.Chrome(service=service, options=chrome_options)
+        
+        # Navigate to the UIDAI verification page
+        driver.get("https://myaadhaar.uidai.gov.in/verifyAadhaar")
+        
+        # Wait and input the Aadhaar number
+        aadhaar_input = WebDriverWait(driver, 10).until(
+            EC.presence_of_element_located((By.ID, "aadhaarNumber"))
+        )
+        aadhaar_input.clear()
+        aadhaar_input.send_keys(aadhaar_number)
+        
+        # Find and click the submit button
+        submit_button = driver.find_element(By.ID, "submitBtn")
+        submit_button.click()
+        
+        # Wait for the result
+        result_element = WebDriverWait(driver, 10).until(
+            EC.presence_of_element_located((By.ID, "verificationResult"))
+        )
+        
+        # Check the verification result
+        result_text = result_element.text.lower()
+        
+        if "valid" in result_text:
+            return "Valid Aadhaar"
+        else:
+            return "Invalid Aadhaar"
+    
+    except TimeoutException:
+        return "Verification Timeout: Website may be slow or unresponsive"
+    except WebDriverException as e:
+        return f"WebDriver Error: {str(e)}"
+    except Exception as e:
+        return f"Unexpected Error: {str(e)}"
+    
+    finally:
+        # Ensure driver is closed if it was created
+        if driver:
+            try:
+                driver.quit()
+            except Exception:
+                pass
+
+def main():
+    # Check Chrome installation
+    if not check_chrome_installation():
+        install_chrome()
+    
+    while True:
+        try:
+            # Get Aadhaar number from user
+            aadhaar_number = input("Enter Aadhaar Number (or 'q' to quit): ").strip()
+            
+            # Allow user to quit
+            if aadhaar_number.lower() == 'q':
+                break
+            
+            # Verify the Aadhaar number
+            result = verify_aadhaar(aadhaar_number)
+            print(result)
+        
+        except KeyboardInterrupt:
+            print("\nProgram terminated by user.")
+            break
+        except Exception as e:
+            print(f"An error occurred: {e}")
+
+if _name_ == "_main_":
+    main()

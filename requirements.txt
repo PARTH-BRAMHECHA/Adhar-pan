@@ -1,0 +1,9 @@
+flask
+paddleocr
+paddlepaddle
+pillow
+opencv-python
+pdf2image
+pymupdf
+google-generativeai
+python-dotenv

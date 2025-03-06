@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document Information Extractor</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body>
+    <div class="container">
+        <header class="text-center my-5">
+            <h1>Document Information Extractor</h1>
+            <p class="lead">Upload documents to extract and analyze their content</p>
+        </header>
+
+        <div class="row">
+            <div class="col-md-6">
+                <div class="card upload-card">
+                    <div class="card-body">
+                        <h5 class="card-title">Upload Document</h5>
+                        <form id="upload-form" enctype="multipart/form-data">
+                            <div class="mb-3">
+                                <div class="upload-area" id="drop-area">
+                                    <p>Drag & drop files here or click to browse</p>
+                                    <input type="file" id="file-input" name="file" accept=".pdf,.png,.jpg,.jpeg" class="form-control" hidden>
+                                </div>
+                                <div id="file-info" class="mt-3 d-none">
+                                    <p><strong>Selected file:</strong> <span id="filename"></span></p>
+                                    <p><strong>File type:</strong> <span id="filetype"></span></p>
+                                    <p><strong>File size:</strong> <span id="filesize"></span></p>
+                                </div>
+                            </div>
+                            <div class="d-grid">
+                                <button type="submit" id="extract-btn" class="btn btn-primary">Extract Information</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+                
+                <div class="card mt-4">
+                    <div class="card-body">
+                        <h5 class="card-title">Supported File Types</h5>
+                        <ul class="file-types">
+                            <li><i class="file-icon pdf"></i> PDF Documents</li>
+                            <li><i class="file-icon image"></i> Images (PNG, JPG, JPEG)</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-6">
+                <div class="card result-card">
+                    <div class="card-body">
+                        <h5 class="card-title">Extraction Results</h5>
+                        <div id="loading" class="text-center d-none">
+                            <div class="spinner-border text-primary" role="status">
+                                <span class="visually-hidden">Loading...</span>
+                            </div>
+                            <p class="mt-2">Processing document, please wait...</p>
+                        </div>
+                        <div id="result-content">
+                            <p class="text-center text-muted">Upload a document to see extraction results</p>
+                        </div>
+                        <div id="verification-controls" class="mt-3 text-center d-none">
+                            <button id="verify-btn" class="btn btn-success">Verify Information</button>
+                            <button id="edit-btn" class="btn btn-outline-secondary ms-2">Edit Information</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row mt-4">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title">Features</h5>
+                        <div class="row features">
+                            <div class="col-md-3">
+                                <div class="feature-item">
+                                    <div class="feature-icon ocr"></div>
+                                    <h6>Advanced OCR</h6>
+                                    <p>Precise text recognition with confidence scoring</p>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="feature-item">
+                                    <div class="feature-icon ai"></div>
+                                    <h6>AI-Powered</h6>
+                                    <p>Smart document analysis and information extraction</p>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="feature-item">
+                                    <div class="feature-icon multi"></div>
+                                    <h6>Multi-Page</h6>
+                                    <p>Support for multi-page PDF documents</p>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="feature-item">
+                                    <div class="feature-icon data"></div>
+                                    <h6>Structured Data</h6>
+                                    <p>Convert documents into structured JSON format</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <footer class="text-center mt-5 mb-4">
+            <p class="text-muted">Document Information Extractor &copy; 2025</p>
+        </footer>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="{{ url_for('static', filename='app.js') }}"></script>
+</body>
+</html>
